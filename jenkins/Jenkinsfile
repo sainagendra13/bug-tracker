@@ -24,6 +24,7 @@ pipeline {
                     image 'node:20-alpine'
                     reuseNode true
                 }
+            }
                 steps{
                     dir('bugtracker-frontend'){
                         sh '''
