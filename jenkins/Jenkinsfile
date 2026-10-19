@@ -17,7 +17,7 @@ pipeline {
                     sh '''
                     go test -v ./... 2>&1 | go-junit-report > backendreport.xml
                     go test -coverprofile=coverage.out ./...
-                    go tool cover -htnl=coverage.out -o coverage.html
+                    go tool cover -html=coverage.out -o coverage.html
                     mkdir -p reports
                     mv coverage.html reports/
                     '''
