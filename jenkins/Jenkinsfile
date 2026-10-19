@@ -16,7 +16,7 @@ pipeline {
                 dir('bugtracker-backend'){
                     sh '''
                     go test -v ./... 2>&1 | go-junit-report > backendreport.xml
-                    go test -coverprofile=coverage.out -covermode=atomic ./...
+                    go test -coverprofile=coverage.out -o coverage.html
                     mkdir -p reports
                     mv coverage.html reports/
                     '''
