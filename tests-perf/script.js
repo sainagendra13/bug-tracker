@@ -29,7 +29,7 @@ export default function () {
 
   const headers = { "Content-Type": "application/json" };
 
-  const createBugRes = http.post("http://localhost:8080/api/bugs", payload, {
+  const createBugRes = http.post("http://bugtracker-api-test:8080/api/bugs", payload, {
     headers,
   });
 
