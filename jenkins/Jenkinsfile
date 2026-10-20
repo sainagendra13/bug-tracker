@@ -128,7 +128,7 @@ pipeline {
             agent{
                 docker{
                     image 'mcr.microsoft.com/playwright:v1.50.0-jammy'
-                    args '-u 0 --network=host'
+                    args '--network bugtracker-test-net'
                     reuseNode true
                 }
 
