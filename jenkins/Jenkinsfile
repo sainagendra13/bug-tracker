@@ -5,7 +5,8 @@ pipeline {
         GOPATH = '/tmp/go'
     }
     stages {
-        stage('Unit Tests - Backend') {
+        parallel{
+             stage('Unit Tests - Backend') {
             agent{
                 docker{
                     image 'snakee/golang-junit:1.21'
@@ -64,6 +65,14 @@ pipeline {
                         ])
                     }
                 }
+            }
+
+        }
+       
+        }
+        post{
+            always{
+                cleanWs()
             }
         }
     }
