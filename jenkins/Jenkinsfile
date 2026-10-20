@@ -85,11 +85,13 @@ pipeline {
 
             }
             steps{
-                sh '''
-                    npm ci
-                    npx playwright test
-
-                '''
+                dir('tests-api'){
+                    sh '''
+                        npm ci
+                        npx playwright test
+                    '''
+                }
+              
             }
 
         }
