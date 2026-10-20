@@ -14,7 +14,7 @@ export const options = {
 
 export default function () {
   // Health check
-  const healthRes = http.get("http://localhost:8080/api/health");
+  const healthRes = http.get("http://bugtracker-api-test:8080/api/health");
   check(healthRes, {
     "health check status is 200": (r) => r.status === 200,
   });
