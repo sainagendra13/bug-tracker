@@ -75,6 +75,24 @@ pipeline {
                 }
             }
         }
+        stage('API - Testing')
+        {
+            agent{
+                docker{
+                    image 'mcr.microsoft.com/playwright:v1.50.0-jammy'
+                    reuseNode true
+                }
+
+            }
+            steps{
+                sh '''
+                    npm ci
+                    npx playwright test
+
+                '''
+            }
+
+        }
     }
 
     post {
