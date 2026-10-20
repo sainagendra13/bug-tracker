@@ -1,3 +1,4 @@
+
 import {
   render,
   screen,
@@ -43,7 +44,7 @@ jest.mock("next/image", () => ({
 
 describe("BugList", () => {
   const mockRouter = {
-    query: {},
+    query: {} as Record<string, string>,
     pathname: "/",
     replace: jest.fn(),
   };
@@ -66,9 +67,10 @@ describe("BugList", () => {
   ];
 
   beforeEach(() => {
+    jest.clearAllMocks();
+    mockRouter.query = {};
     (useRouter as jest.Mock).mockReturnValue(mockRouter);
     (getBugs as jest.Mock).mockResolvedValue(mockBugs);
-    jest.clearAllMocks();
   });
 
   const renderAndWaitForData = async () => {
@@ -77,8 +79,9 @@ describe("BugList", () => {
 
     await waitFor(() => {
       expect(screen.getByText("All Bugs")).toBeInTheDocument();
-      expect(screen.findByText("Bug 1")).toBeInTheDocument();
+      expect(screen.getByText("Bug 1")).toBeInTheDocument();
     });
+
     return result;
   };
 
@@ -93,13 +96,17 @@ describe("BugList", () => {
       const consoleErrorSpy = jest
         .spyOn(console, "error")
         .mockImplementation(() => {});
+
       (getBugs as jest.Mock).mockRejectedValue(new Error("Failed to fetch"));
+
       render(<BugList />);
+
       await waitFor(() => {
         expect(
           screen.getByText("Error: Failed to fetch bugs")
         ).toBeInTheDocument();
       });
+
       consoleErrorSpy.mockRestore();
     });
   });
@@ -111,9 +118,11 @@ describe("BugList", () => {
 
     it("should open add bug modal when clicking Add New Bug", async () => {
       const addButton = screen.getByRole("button", { name: /add new bug/i });
+
       await act(async () => {
         fireEvent.click(addButton);
       });
+
       expect(
         screen.getByRole("heading", { name: /add new bug/i })
       ).toBeInTheDocument();
@@ -127,6 +136,7 @@ describe("BugList", () => {
         priority: "High",
         description: "Test",
       };
+
       (createBug as jest.Mock).mockResolvedValue(newBug);
       (getBugs as jest.Mock).mockResolvedValue([...mockBugs, newBug]);
 
@@ -141,6 +151,7 @@ describe("BugList", () => {
       });
 
       expect(createBug).toHaveBeenCalled();
+
       expect(mockRouter.replace).toHaveBeenCalledWith({
         pathname: "/",
         query: { createdBugTitle: "New Bug", showCreateNotification: true },
@@ -151,7 +162,9 @@ describe("BugList", () => {
       await waitFor(() => {
         expect(screen.getByText("Bug 1")).toBeInTheDocument();
       });
+
       const editButtons = screen.getAllByRole("button", { name: /edit/i });
+
       await act(async () => {
         fireEvent.click(editButtons[0]);
       });
@@ -160,9 +173,11 @@ describe("BugList", () => {
         const titleInput = screen.getByDisplayValue("Bug 1");
         await userEvent.clear(titleInput);
         await userEvent.type(titleInput, "Updated Bug");
+
         const saveButton = screen.getByRole("button", {
           name: /save changes/i,
         });
+
         fireEvent.click(saveButton);
       });
 
@@ -184,6 +199,7 @@ describe("BugList", () => {
         const deleteButtons = screen.getAllByRole("button", {
           name: /delete/i,
         });
+
         fireEvent.click(deleteButtons[0]);
       });
 
@@ -194,6 +210,7 @@ describe("BugList", () => {
       });
 
       expect(deleteBug).toHaveBeenCalledWith("1");
+
       expect(mockRouter.replace).toHaveBeenCalledWith({
         pathname: "/",
         query: { deletedBugTitle: "Bug 1", showDeleteNotification: true },
@@ -207,7 +224,9 @@ describe("BugList", () => {
         showCreateNotification: "true",
         createdBugTitle: "New Bug",
       };
+
       await renderAndWaitForData();
+
       await waitFor(() => {
         expect(
           screen.getByText(/successfully created bug "New Bug"/i)
@@ -220,8 +239,12 @@ describe("BugList", () => {
         showDeleteNotification: "true",
         deletedBugTitle: "Bug 1",
       };
+
       await renderAndWaitForData();
-      expect(screen.getByText(/successfully deleted bug/i)).toBeInTheDocument();
+
+      expect(
+        screen.getByText(/successfully deleted bug/i)
+      ).toBeInTheDocument();
     });
   });
 
@@ -241,14 +264,14 @@ describe("BugList", () => {
     });
   });
 
-  it("displays the correct version number", () => {
-    render(<BugList />);
+  it("displays the correct version number", async () => {
+    await renderAndWaitForData();
 
     expect(screen.getByText(`v${APP_VERSION}`)).toBeInTheDocument();
   });
 
-  it("displays the version number in the header", () => {
-    render(<BugList />);
+  it("displays the version number in the header", async () => {
+    await renderAndWaitForData();
 
     const header = screen.getByRole("navigation");
     const versionElement = screen.getByText(`v${APP_VERSION}`);
