@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 
 let testBugId: number;
 
+/*
 test("Call Health Check", async ({ request }) => {
   console.log("Starting test...");
 
@@ -11,6 +12,18 @@ test("Call Health Check", async ({ request }) => {
     expect.objectContaining({
       status: "ok",
     })
+  );
+}); */
+
+test("Call Health Check", async ({ request }) => {
+  const response = await request.get("health");
+
+  console.log("HTTP Status:", response.status());
+  console.log("Response:", await response.text());
+
+  expect(response.ok()).toBeTruthy();
+  expect(await response.json()).toEqual(
+    expect.objectContaining({ status: "ok" })
   );
 });
 
