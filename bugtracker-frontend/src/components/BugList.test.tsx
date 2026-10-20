@@ -77,7 +77,7 @@ describe("BugList", () => {
 
     await waitFor(() => {
       expect(screen.getByText("All Bugs")).toBeInTheDocument();
-      expect(screen.getByText("Bug 1")).toBeInTheDocument();
+      expect(await screen.findByText("Bug 1")).toBeInTheDocument();
     });
     return result;
   };
