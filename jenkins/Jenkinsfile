@@ -75,11 +75,26 @@ pipeline {
                 }
             }
         }
+        stage('Start Backend API') {
+            steps {
+                sh '''
+                    docker network create bugtracker-test-net || true
+
+                    docker build -t bugtracker-api-test ./bugtracker-backend
+
+                    docker run -d \
+                        --name bugtracker-api-test \
+                        --network bugtracker-test-net \
+                        bugtracker-api-test
+                '''
+            }
+        }
         stage('API - Testing')
         {
             agent{
                 docker{
                     image 'mcr.microsoft.com/playwright:v1.50.0-jammy'
+                    args '--network bugtracker-test-net'
                     reuseNode true
                 }
 
@@ -87,18 +102,34 @@ pipeline {
             steps{
                 dir('tests-api'){
                     sh '''
+                        npx wait-port http://localhost:8080/api/health -t 30000
                         npm ci
                         npx playwright test
                     '''
                 }
               
             }
+            post {
+                        always {
+                            junit 'test-api/test-results/results.xml'
+
+                            publishHTML(target: [
+                                reportDir: 'test-api/playwright-report',
+                                reportFiles: 'index.html',
+                                reportName: 'API Test Report'
+                            ])
+                        }
+                    }
 
         }
     }
 
     post {
         always {
+             sh '''
+                docker rm -f bugtracker-api-test || true
+                docker network rm bugtracker-test-net || true
+            '''
             cleanWs()
         }
     }
