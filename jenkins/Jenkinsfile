@@ -123,37 +123,50 @@ pipeline {
 
         }
 
-              stage('E2E - Testing')
-        {
-            agent{
-                docker{
-                    image 'mcr.microsoft.com/playwright:v1.50.0-jammy'
-                    args '--network bugtracker-test-net'
-                    reuseNode true
-                }
-
-            }
-            steps{
-                dir('tests-e2e'){
-                    sh '''
-                        npm ci
-                        npx playwright test
-                    '''
-                }
-              
-            }
-            post {
-                        always {
-                            junit 'tests-e2e/test-results/results.xml'
-
-                            publishHTML(target: [
-                                reportDir: 'tests-e2e/playwright-report',
-                                reportFiles: 'index.html',
-                                reportName: 'E2E Test Report'
-                            ])
-                        }
-                    }
+        stage('E2E - Testing') {
+    agent {
+        docker {
+            image 'mcr.microsoft.com/playwright:v1.50.0-jammy'
+            args '--network bugtracker-test-net'
+            reuseNode true
         }
+    }
+
+    environment {
+        NEXT_PUBLIC_API_URL = 'http://bugtracker-api-test:8080'
+        PLAYWRIGHT_TEST_BASE_URL = 'http://localhost:3000'
+        CI = 'true'
+    }
+
+    steps {
+        dir('bugtracker-frontend') {
+            sh '''
+                npm ci
+                npm run dev -- --hostname 0.0.0.0 > /tmp/bugtracker-frontend.log 2>&1 &
+            '''
+        }
+
+        dir('tests-e2e') {
+            sh '''
+                npm ci
+                npx wait-port localhost:3000 -t 120000
+                npx playwright test
+            '''
+        }
+    }
+
+    post {
+        always {
+            junit 'tests-e2e/test-results/results.xml'
+
+            publishHTML(target: [
+                reportDir: 'tests-e2e/playwright-report',
+                reportFiles: 'index.html',
+                reportName: 'E2E Test Report'
+            ])
+        }
+    }
+}
     }
 
     post {
