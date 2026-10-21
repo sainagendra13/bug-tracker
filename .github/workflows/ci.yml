@@ -124,6 +124,7 @@ jobs:
           npx wait-port localhost:8080 -t 30000
 
       - name: Run API Tests
+        working-directory: ./tests-api
         env:
           PLAYWRIGHT_TEST_BASE_URL: http://localhost:8080/api/
         run: |
