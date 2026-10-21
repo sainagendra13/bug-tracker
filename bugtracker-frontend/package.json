@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -H 0.0.0.0 -p 3000",
     "lint": "next lint",
     "test": "jest --coverage --coverageReporters='text-summary' --coverageReporters='text' --coverageReporters='html' --reporters=default --reporters=jest-junit",
     "test:watch": "jest --watch",
