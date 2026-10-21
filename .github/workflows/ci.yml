@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches:
+        - main
+  workflow_dispatch:
+
+jobs:
+  unit-tests-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.21"
+          cache-dependency-path: bugtracker-backend/go.sum
+      
+      - name: Install Go Unit Report
+        run: go install github.com/jstemmer/go-junit-report/v2@latest
+
+      - name: Execute Backend Unit Tests
+        working-directory: ./bugtracker-backend
+        run: |
+          go test -json -coverprofile=coverage.out -covermode=atomic ./...
+          go test cover -func=coverage.out > coverage.txt
+
+          echo "## Go test Coverage Report" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat coverage.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          go test -v ./... 2>&1 | go-junit-report > test-results.xml
+
+      - name: Publish Unit Tests
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Backend Unit Test Report
+          path: bugtracker-backend/test-results.xml
+          reporter: jest-junit
+
+  unit-tests-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: bugtracker-frontend/package-lock.json
+
+      - name: Execute Frontend Unit Tests
+        working-directory: ./bugtracker-frontend
+        run: |
+          npm ci
+          npm test | tee full_output.txt
+
+          echo "## Frontend test Coverage Report" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat full_output.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          
+
+      - name: Publish Unit Tests
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Frontend Unit Test Report
+          path: bugtracker-frontend/test-results.xml
+          reporter: jest-junit
