@@ -274,7 +274,7 @@ jobs:
         working-directory: ./tests-e2e
         run: |
           npm ci
-          npx playwright
+          npx playwright install
 
 
       - name: Run E2E Tests Against Fly Staging
