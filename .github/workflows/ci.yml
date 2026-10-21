@@ -147,7 +147,7 @@ jobs:
       -  name: Run Performance Tests
          uses: grafana/run-k6-action@v1
          with:
-           path: tests-perf/script.json
+           path: tests-perf/script.js
            flags: --out json=summary.json
 
       - name: Shutdown Application
