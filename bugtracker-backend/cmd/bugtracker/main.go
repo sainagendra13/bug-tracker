@@ -71,7 +71,7 @@ func createServer() *http.Server {
 		AllowedOrigins: []string{
 			"http://localhost:3000",
 			 "https://sainagendra-bugtracker-web-staging.fly.dev",
-        "https://sainagendra-bugtracker-web.fly.dev"
+        "https://sainagendra-bugtracker-web.fly.dev",
 		},
 		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders: []string{"*"},
