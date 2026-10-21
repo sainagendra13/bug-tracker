@@ -3,7 +3,10 @@ name: CI
 on:
   push:
     branches:
-        - main
+      - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
@@ -89,7 +92,7 @@ jobs:
   
   create-coverage-comment:
     if: github.event_name == 'pull_request'
-    needs: [unit-tests-backend]
+    needs: [unit-tests-backend, unit-tests-frontend]
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
@@ -216,3 +219,41 @@ jobs:
           name: Performance HTML Report
           path: perf-results.html
           retention-days: 30
+  
+  deploy-staging:
+    needs: [api-e2e-performance-tests]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Deploy Backend
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        working-directory: ./bugtracker-backend
+        run: flyctl deploy -c fly.staging.toml --remote-only
+
+      - name: Deploy Frontend
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        working-directory: ./bugtracker-frontend
+        run: flyctl deploy -c fly.staging.toml --remote-only
+
+  # post-deployment-tests:
+  #   needs: deploy-staging
+  #     if: github.ref == 'refs/head/main'
+  #     runs-on: ubuntu-latest
+
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Install Playwright
+  #       working-directory: ./tests-e2e
+  #       run: |
+  #         npm ci
+  #         npx playwright install
+          
+  #     - name: Run Post-Deployment Tests:
+  #       working-directory: ./tests-e2e
