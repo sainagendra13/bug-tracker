@@ -99,6 +99,9 @@ pipeline {
                 }
 
             }
+            environment {
+        PLAYWRIGHT_TEST_BASE_URL = 'http://bugtracker-api-test:8080/api/'
+        }
             steps{
                 dir('tests-api'){
                     sh '''
