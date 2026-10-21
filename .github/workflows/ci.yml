@@ -108,3 +108,50 @@ jobs:
           issue-number: ${{ github.event.pull_request.number }}
           body: |
             ${{ needs.unit-tests-frontend.outputs.coverage }}
+
+
+  api-tests:
+    needs: [unit-tests-backend, unit-tests-frontend]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check Out Repository
+        uses: actions/checkout@v4
+
+      - name: Lauch Application
+        run: |
+          docker compose up --build -d
+          npx wait-port http://localhost:8000/api/health -t 3000
+
+      - name: Run API Tests
+        run: |
+          npm ci
+          npx playwright test
+
+      - name: Shutdown Application
+        run: |
+          docker compose down
+
+      - name: Upload API tests
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-test-results
+          path: ./tests-api/test-results/
+          retention-days: 30
+
+      - name: Upload Playwright Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-test-playwright-report
+          path: ./tests-api/playwright-report/
+          retention-days: 30
+
+      - name: Publish API Test results
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: API test reports
+          path: ./tests-api/test-results/*.xml
+          reporter: jest-junit
