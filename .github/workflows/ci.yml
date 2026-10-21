@@ -121,16 +121,17 @@ jobs:
       - name: Lauch Application
         run: |
           docker compose up --build -d
-          npx wait-port http://localhost:8000/api/health -t 3000
+          npx wait-port localhost:8080 -t 30000
 
       - name: Run API Tests
+        env:
+          PLAYWRIGHT_TEST_BASE_URL: http://localhost:8080/api/
         run: |
           npm ci
           npx playwright test
 
       - name: Shutdown Application
-        run: |
-          docker compose down
+        run: docker compose down
 
       - name: Upload API tests
         if: always()
