@@ -223,7 +223,6 @@ jobs:
   deploy-staging:
     if: false
     needs: [api-e2e-performance-tests]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
     steps:
