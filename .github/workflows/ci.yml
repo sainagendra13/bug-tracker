@@ -110,7 +110,7 @@ jobs:
             ${{ needs.unit-tests-frontend.outputs.coverage }}
 
 
-  api-tests:
+  api-e2e-tests:
     needs: [unit-tests-backend, unit-tests-frontend]
     runs-on: ubuntu-latest
 
@@ -129,6 +129,16 @@ jobs:
           PLAYWRIGHT_TEST_BASE_URL: http://localhost:8080/api/
         run: |
           npm ci
+          npx playwright test
+
+      - name: Run E2ETests
+        working-directory: ./tests-e2e
+        env:
+          PLAYWRIGHT_TEST_BASE_URL: http://localhost:3000
+          CI: "1"
+        run: |
+          npm ci
+          npx playwright install
           npx playwright test
 
       - name: Shutdown Application
@@ -156,4 +166,28 @@ jobs:
         with:
           name: API test reports
           path: ./tests-api/test-results/*.xml
+          reporter: jest-junit
+
+      - name: Upload E2E tests
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-results
+          path: ./tests-e2e/test-results/
+          retention-days: 30
+
+      - name: Upload E2E Playwright Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-playwright-report
+          path: ./tests-e2e/playwright-report/
+          retention-days: 30
+
+      - name: Publish E2E Test results
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: E2E test reports
+          path: ./tests-e2e/test-results/results.xml
           reporter: jest-junit
