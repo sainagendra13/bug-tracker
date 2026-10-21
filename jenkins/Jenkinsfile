@@ -179,6 +179,9 @@ pipeline {
             args '--network bugtracker-test-net -u root --entrypoint=""'
         }
         }
+        environment {
+            API_BASE_URL = 'http://bugtracker-api-test:8080'
+        }
         steps{
             dir('tests-perf')
             {

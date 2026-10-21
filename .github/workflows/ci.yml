@@ -110,7 +110,7 @@ jobs:
             ${{ needs.unit-tests-frontend.outputs.coverage }}
 
 
-  api-e2e-tests:
+  api-e2e-performance-tests:
     needs: [unit-tests-backend, unit-tests-frontend]
     runs-on: ubuntu-latest
 
@@ -140,6 +140,15 @@ jobs:
           npm ci
           npx playwright install
           npx playwright test
+
+      -  name: Set K6 installation
+         uses: grafana/setup-k6-action@v1
+
+      -  name: Run Performance Tests
+         uses: grafana/run-k6-action@v1
+         with:
+           path: tests-perf/script.json
+           flags: --out json=summary.json
 
       - name: Shutdown Application
         run: docker compose down
@@ -191,3 +200,19 @@ jobs:
           name: E2E test reports
           path: ./tests-e2e/test-results/results.xml
           reporter: jest-junit
+
+      - name: Upload Performance raw results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance raw results
+          path: summary.json
+          retention-days: 30
+      
+      - name: Upload Performance HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Performance HTML Report
+          path: perf-results.html
+          retention-days: 30
